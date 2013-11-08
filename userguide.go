@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 	"github.com/rmera/gochem"
+	"github.com/rmera/gochem/xtc"
 )
 
 func main() {
@@ -28,7 +29,7 @@ func One() {
 	pulled.SomeVecs(mol.Coords[0], pulled_atoms) //We use the pulled_atoms set of indexes to get the atoms we will be pulling
 	at1 := mol.Coord(pulling_vector[0], 0)
 	vector := chem.ZeroVecs(1)
-	vector.Clone(mol.Coord(pulling_vector[1], 0)) //We copy to avoid altering the atom 88 coordinates
+	vector.Copy(mol.Coord(pulling_vector[1], 0)) //We copy to avoid altering the atom 88 coordinates
 	vector.Sub(vector, at1)
 	vector.Unit(vector)
 	vector.Scale(pull_ammount, vector) //we started with an unit lenght bector and now multiply by the desired pull ammount
@@ -76,7 +77,7 @@ func SelectResidue(mol chem.Ref, residue string) []int {
 }
 
 func Three() {
-	traj, err := chem.NewXTC("test.xtc")
+	traj, err := xtc.New("test.xtc")
 	if err != nil {
 		panic(err.Error())
 	}
