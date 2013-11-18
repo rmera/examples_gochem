@@ -31,9 +31,9 @@ func main() {
 	//*******************************************
 	//I just hard-coded these ones, they make sense
 	//for my test system but you will have to change them for yours.
-	axis1 := mol.Coords[0].VecView(32) //the 2 atoms defining the rotation axis
-	axis2 := mol.Coords[0].VecView(36)
-	torotate_indexes := []int{31, 33, 34, 35, 63, 64, 65}
+	axis1 := mol.Coords[0].VecView(6) //the 2 atoms defining the rotation axis
+	axis2 := mol.Coords[0].VecView(7)
+	torotate_indexes := []int{8, 9, 10, 11, 70, 83, 69}
 	torotate:=chem.ZeroVecs(len(torotate_indexes))
 	torotate.SomeVecs(mol.Coords[0],torotate_indexes)                     //The atoms that will rotate
 	angles := []float64{0, 0.2 * math.Pi, 0.4 * math.Pi, 0.5 * math.Pi} //The rotation angles in radians.
