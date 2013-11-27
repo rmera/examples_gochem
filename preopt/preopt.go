@@ -20,7 +20,7 @@ func main() {
 	charge:=flag.Int("charge",0,"The charge of the system.")
 	multi:=flag.Int("multi",1,"The multiplicity of the system.")
 	filename:=flag.String("file","file.xyz","The XYZ file containing the coordinates for the system.")
-	functional:=flag.String("func", "TPSS", "The density functional used. TPSS and BP86 activate RI when possible.")
+	functional:=flag.String("func", "BP86", "The density functional used. TPSS and BP86 activate RI when possible.")
 	program:=flag.String("program","qcmine", "The QM program used: qcmine, nwchem or orca.")
 	basis:=flag.String("basis", "def2-SVP","the basis set to use. Use Karlsruhe ones.")
 	dielectric:=flag.Float64("epsilon", -1, "The dielectric constant. -1 indicates no dielectric used.")
