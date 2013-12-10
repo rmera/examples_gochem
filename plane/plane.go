@@ -20,6 +20,7 @@ func main() {
 		panic(err.Error())
 	}
 	var indexes []int
+	//if no file with indexes given, will just use all the atoms.
 	if len(os.Args)<3{
 		indexes=make([]int,mol.Len())
 		for k,v:=range(indexes){
@@ -35,7 +36,7 @@ func main() {
 	some.SomeVecs(mol.Coords[0], indexes)
 	//for most rotation things it is good to have the molecule centered on its mean.
 	mol.Coords[0], _, _ = chem.MassCentrate(mol.Coords[0], some, nil)
-	//As we changed the atomic positions, must extract the indexed atoms again.
+	//As we changed the atomic positions, must extract the plane-defining atoms again.
 	some.SomeVecs(mol.Coords[0], indexes)
 	//The strategy is: Take the normal to the plane of the molecule (os molecular subset), and rotate it until it matches the Z-axis
 	//This will mean that the plane of the molecule will now match the XY-plane.
