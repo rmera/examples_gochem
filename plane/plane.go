@@ -1,18 +1,17 @@
 package main
 
-import(
+import (
 	"fmt"
-	"os"
 	"github.com/rmera/gochem"
 	"github.com/rmera/scu"
+	"os"
 )
 
-
 //This program will align the best plane passing through a set of atoms in a molecule with the XY-plane.
-//Usage: 
+//Usage:
 func main() {
-	if len(os.Args)<2{
-		fmt.Printf("Usage:\n%s file.xyz [indexes.dat]\nindexes.dat is a file containing one single line, with all the atoms defining the plane separated by spaces. If it is not given, all the atoms of the molecule will be taken to define the plane.\n",os.Args[0])
+	if len(os.Args) < 2 {
+		fmt.Printf("Usage:\n%s file.xyz [indexes.dat]\nindexes.dat is a file containing one single line, with all the atoms defining the plane separated by spaces. If it is not given, all the atoms of the molecule will be taken to define the plane.\n", os.Args[0])
 		os.Exit(1)
 	}
 	mol, err := chem.XYZRead(os.Args[1])
@@ -21,14 +20,14 @@ func main() {
 	}
 	var indexes []int
 	//if no file with indexes given, will just use all the atoms.
-	if len(os.Args)<3{
-		indexes=make([]int,mol.Len())
-		for k,v:=range(indexes){
-			indexes[k]=v
+	if len(os.Args) < 3 {
+		indexes = make([]int, mol.Len())
+		for k, v := range indexes {
+			indexes[k] = v
 		}
-	}else{
-		indexes,err=scu.IndexFileParse(os.Args[2])
-		if err!=nil{
+	} else {
+		indexes, err = scu.IndexFileParse(os.Args[2])
+		if err != nil {
 			panic(err.Error())
 		}
 	}
@@ -46,10 +45,10 @@ func main() {
 	}
 	z, _ := chem.NewVecs([]float64{0, 0, 1})
 	zero, _ := chem.NewVecs([]float64{0, 0, 0})
-	fmt.Fprintln(os.Stderr,"Best  Plane", best, z,indexes)
+	fmt.Fprintln(os.Stderr, "Best  Plane", best, z, indexes)
 	axis := chem.ZeroVecs(1)
 	axis.Cross(best, z)
-	fmt.Fprintln(os.Stderr,"axis", axis)
+	fmt.Fprintln(os.Stderr, "axis", axis)
 	//The main part of the program, where the rotation actually happens. Note that we rotate the whole
 	//molecule, not just the planar subset, this is only used to calculate the rotation angle.
 	mol.Coords[0], err = chem.RotateAbout(mol.Coords[0], zero, axis, chem.Angle(best, z))
