@@ -56,5 +56,7 @@ func main() {
 		panic(err.Error())
 	}
 	//Now we write the rotated result.
-	fmt.Print(chem.XYZStringWrite(mol.Coords[0], mol))
+	final,err:=chem.XYZStringWrite(mol.Coords[0], mol)
+	fmt.Print(final)
+	fmt.Fprintln(os.Stderr,err)
 }
