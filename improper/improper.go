@@ -8,9 +8,14 @@ import (
 )
 
 
-//improper.go Takes an XYZ file and the zero-based indexes of 4 atoms (a,b,c and d) It calculates the improper dihedral between 
-//a plane defined by the vectors ab and ac and the vector ad. The atoms b and c must be given in an order such that the 
-//cross produc ab x ac points in the same general direction as the vector ad.
+//improper.go Takes an XYZ file and the zero-based indexes of 4 atoms (a,b,c and d) It calculates the improper 
+//dihedral between a plane defined by the vectors ab and ac and the vector ad. The atoms b and c must be given 
+//in an order such that the cross produc ab x ac points in the same general direction as the vector ad. The 
+//indexes a,b,c and d have to be given after the XYZ file name as a quoted string separated by spaces.
+
+//example:
+
+// ./improper file.xyz "0 1 2 3"
 
 func main() {
 	mol, err := chem.XYZRead(os.Args[1])
