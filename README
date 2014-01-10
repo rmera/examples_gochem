@@ -2,4 +2,32 @@ This repo contains the code for the examples in the goChem wiki:
 
 www.github.com/rmera/gochem/wiki
 
+In addition, small programs that I have found useful are included.
+They perform simple tasks like aligning the XY plane with an 
+arbitrary plane, pre-optimizing a structure at sempiempirical 
+level and preparing an input for a subsequent DFT calculation, 
+calculating improper dihedral angles, among others.
+
+If you need a binary for any of these, just let me know.
+
+
+LICENSE
+
+Copyright 2012 Raul Mera <rmera{at}chemDOThelsinkiDOTfi> 
+
+
+These programs, including their documentation, 
+is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as 
+published by the Free Software Foundation; either version 2.1 of the 
+License, or (at your option) any later version.
+	  
+These programs and their documentation are distributed in the hope that 
+it will be useful, but WITHOUT ANY WARRANTY; without even the 
+implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+PURPOSE.  See the GNU General Public License for more details.
+		    
+You should have received a copy of the GNU Lesser General 
+Public License along with these program.  If not, see 
+<http://www.gnu.org/licenses/>. 
 
