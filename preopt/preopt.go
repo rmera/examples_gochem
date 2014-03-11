@@ -21,8 +21,8 @@ func main() {
 	multi:=flag.Int("multi",1,"The multiplicity of the system.")
 	filename:=flag.String("file","file.xyz","The XYZ file containing the coordinates for the system.")
 	functional:=flag.String("func", "BP86", "The density functional used. TPSS and BP86 activate RI when possible.")
-	program:=flag.String("program","qcmine", "The QM program used: qcmine, nwchem or orca.")
-	basis:=flag.String("basis", "def2-SVP","the basis set to use. Use Karlsruhe ones.")
+	program:=flag.String("program","nwchem", "The QM program used: qcmine, nwchem or orca.")
+	basis:=flag.String("basis", "def2-SVP","the basis set to use. Use Karlsruhe basis.")
 	dielectric:=flag.Float64("epsilon", -1, "The dielectric constant. -1 indicates no dielectric used.")
 	optimize:=flag.Bool("opt",true,"Wether to optimize or run an SP calculation.")
 	flag.Parse()
@@ -65,17 +65,17 @@ func main() {
 	calc.Method=*functional
 	var QM qmdef
 	switch *program{
-		case "nwchem":
+		default:
 			QM=qmdef(qm.NewNWChemHandle())
 		case "orca":
 			QM=qmdef(qm.NewOrcaHandle())
-		default:
-			//There is a hicup with ChemShell since I have not implemented a few methods.
-			//I should have an interface in goChem that does not require Energy() and OptimizedGeometry()
-			CS:=qm.NewCSHandle()
-			CS.SetDefaults()
-			CS.SetName(name)
-			CS.BuildInput(ncoords,mol,calc)
+//		default:
+//			//There is a hicup with ChemShell since I have not implemented a few methods.
+//			//I should have an interface in goChem that does not require Energy() and OptimizedGeometry()
+//			CS:=qm.NewCSHandle()
+//			CS.SetDefaults()
+//			CS.SetName(name)
+//			CS.BuildInput(ncoords,mol,calc)
 	}
 	if QM!=nil{
 		QM.SetDefaults()
