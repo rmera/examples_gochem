@@ -6,6 +6,7 @@ import (
 	"flag"
 	"github.com/rmera/gochem"
 	"github.com/rmera/gochem/qm"
+	"github.com/rmera/scu"
 	"strings"
 	"os"
 )
@@ -21,10 +22,11 @@ func main() {
 	multi:=flag.Int("multi",1,"The multiplicity of the system.")
 	filename:=flag.String("file","file.xyz","The XYZ file containing the coordinates for the system.")
 	functional:=flag.String("func", "BP86", "The density functional used. TPSS and BP86 activate RI when possible.")
-	program:=flag.String("program","nwchem", "The QM program used: qcmine, nwchem or orca.")
+	program:=flag.String("program","nwchem", "The QM program used: qcmine, nwchem, or orca.")
 	basis:=flag.String("basis", "def2-SVP","the basis set to use. Use Karlsruhe basis.")
 	dielectric:=flag.Float64("epsilon", -1, "The dielectric constant. -1 indicates no dielectric used.")
 	optimize:=flag.Bool("opt",true,"Wether to optimize or run an SP calculation.")
+	fixed:=flag.String("fixed","","Fixed atoms, counting from zero, separated by spaces." )
 	flag.Parse()
 	//We set the calculation to the values in the flags. Not big deal.
 	mol, err := chem.XYZRead(*filename)
@@ -36,6 +38,12 @@ func main() {
 	calc := new(qm.Calc)
 	if strings.Contains("TPSS,BP86,PBE",*functional){
 		calc.RI=true
+	}
+	if *fixed!=""{
+		calc.CConstraints, err=scu.IndexStringParse(*fixed)
+		if err!=nil{
+			panic (err.Error())
+		}
 	}
 	calc.Memory = 1000
 	calc.Dielectric = *dielectric
@@ -82,6 +90,8 @@ func main() {
 		QM.SetName(name)
 		QM.BuildInput(ncoords,mol,calc)
 	}
+	newfilename:=strings.Replace(*filename,".xyz","_preopt.xyz",1)
+	chem.XYZWrite(newfilename,ncoords,mol)
 	fmt.Fprintln(os.Stderr,"Apparently, we made it :-)")
 }
 
