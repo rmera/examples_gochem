@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/rmera/gochem"
-	"github.com/rmera/scu"
 	"os"
+
+	"github.com/rmera/gochem"
+	"github.com/rmera/gochem/v3"
+	"github.com/rmera/scu"
 )
 
 //This program will align the best plane passing through a set of atoms in a molecule with the XY-plane.
@@ -14,7 +16,7 @@ func main() {
 		fmt.Printf("Usage:\n%s file.xyz [indexes.dat]\nindexes.dat is a file containing one single line, with all the atoms defining the plane separated by spaces. If it is not given, all the atoms of the molecule will be taken to define the plane.\n", os.Args[0])
 		os.Exit(1)
 	}
-	mol, err := chem.XYZRead(os.Args[1])
+	mol, err := chem.XYZFileRead(os.Args[1])
 	if err != nil {
 		panic(err.Error())
 	}
@@ -31,10 +33,10 @@ func main() {
 			panic(err.Error())
 		}
 	}
-	some := chem.ZeroVecs(len(indexes)) //will contain the atoms selected to define the plane.
+	some := v3.Zeros(len(indexes)) //will contain the atoms selected to define the plane.
 	some.SomeVecs(mol.Coords[0], indexes)
 	//for most rotation things it is good to have the molecule centered on its mean.
-	mol.Coords[0], _, _ = chem.MassCentrate(mol.Coords[0], some, nil)
+	mol.Coords[0], _, _ = chem.MassCenter(mol.Coords[0], some, nil)
 	//As we changed the atomic positions, must extract the plane-defining atoms again.
 	some.SomeVecs(mol.Coords[0], indexes)
 	//The strategy is: Take the normal to the plane of the molecule (os molecular subset), and rotate it until it matches the Z-axis
@@ -43,10 +45,10 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	z, _ := chem.NewVecs([]float64{0, 0, 1})
-	zero, _ := chem.NewVecs([]float64{0, 0, 0})
+	z, _ := v3.NewMatrix([]float64{0, 0, 1})
+	zero, _ := v3.NewMatrix([]float64{0, 0, 0})
 	fmt.Fprintln(os.Stderr, "Best  Plane", best, z, indexes)
-	axis := chem.ZeroVecs(1)
+	axis := v3.Zeros(1)
 	axis.Cross(best, z)
 	fmt.Fprintln(os.Stderr, "axis", axis)
 	//The main part of the program, where the rotation actually happens. Note that we rotate the whole
@@ -56,7 +58,7 @@ func main() {
 		panic(err.Error())
 	}
 	//Now we write the rotated result.
-	final,err:=chem.XYZStringWrite(mol.Coords[0], mol)
+	final, err := chem.XYZStringWrite(mol.Coords[0], mol)
 	fmt.Print(final)
-	fmt.Fprintln(os.Stderr,err)
+	fmt.Fprintln(os.Stderr, err)
 }

@@ -3,7 +3,9 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/rmera/gochem"
+	"github.com/rmera/gochem/v3"
 	"github.com/rmera/gochem/xtc"
 )
 
@@ -21,14 +23,14 @@ func One() {
 	pulled_atoms := []int{43, 41, 42, 40, 85, 86, 87} //indexes
 	pulling_vector := []int{40, 88}                   //The direction in which we pull is given by atoms 40 and 88 counting from 0
 	pull_ammount := 4.0                               //how much do we want to pull, in Angstroms
-	mol, err := chem.XYZRead("sample.xyz")
+	mol, err := chem.XYZFileRead("sample.xyz")
 	if err != nil {
 		panic(err.Error())
 	}
-	pulled := chem.ZeroVecs(7)
+	pulled := v3.Zeros(7)
 	pulled.SomeVecs(mol.Coords[0], pulled_atoms) //We use the pulled_atoms set of indexes to get the atoms we will be pulling
 	at1 := mol.Coord(pulling_vector[0], 0)
-	vector := chem.ZeroVecs(1)
+	vector := v3.Zeros(1)
 	vector.Copy(mol.Coord(pulling_vector[1], 0)) //We copy to avoid altering the atom 88 coordinates
 	vector.Sub(vector, at1)
 	vector.Unit(vector)
@@ -38,11 +40,11 @@ func One() {
 		panic(err.Error())
 	}
 	mol.Coords[0].SetVecs(pulled, pulled_atoms) //Now we put the pulled coordinates into the original molecule
-	chem.XYZWrite("sample_pulled.xyz", mol.Coords[0], mol)
+	chem.XYZFileWrite("sample_pulled.xyz", mol.Coords[0], mol)
 }
 
 func Two() {
-	mol, err := chem.PDBRead("2c9v.pdb", true)
+	mol, err := chem.PDBFileRead("2c9v.pdb", true)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -62,16 +64,16 @@ func Two() {
 }
 
 //Uses a reference (mol) and a residue name (3-letter code) and returns a list with the ID of those residues in the molecule.
-func SelectResidue(mol chem.Ref, residue string) []int {
+func SelectResidue(mol chem.Atomer, residue string) []int {
 	selected_residues := []int{} //we still dont select anything, so empty slice
 	prevmol := -1                //This is the index of the molecular ID of the last atom read (a meaningless negative number initially)
 	//it helps to make sure we process each molecule only once.
 	for j := 0; j < mol.Len(); j++ {
-		if mol.Atom(j).Molid != prevmol && mol.Atom(j).Molname == residue {
-			selected_residues = append(selected_residues, mol.Atom(j).Molid) //if the residue match and we have not processed
+		if mol.Atom(j).MolID != prevmol && mol.Atom(j).Molname == residue {
+			selected_residues = append(selected_residues, mol.Atom(j).MolID) //if the residue match and we have not processed
 			//this residue before, we add it to the list.
 		}
-		prevmol = mol.Atom(j).Molid
+		prevmol = mol.Atom(j).MolID
 	}
 	return selected_residues
 }
@@ -87,25 +89,28 @@ func Three() {
 //Obtains and prints the distance between atoms 2 and 10 (counting from zero) for each frame of trajectory
 //traj.
 func ProcessTraj(traj chem.Traj) {
-	coords := chem.ZeroVecs(traj.Len())
+	coords := v3.Zeros(traj.Len())
 	for i := 0; ; i++ { //infinite loop, we only break out of it by using "break"
 		err := traj.Next(coords) //Obtain the next frame of the trajectory.
-		if err != nil && err.Error() != "No more frames" {
-			panic(err.Error())
-			break
-		} else if err == nil {
+		if err != nil {
+			_, ok := err.(chem.LastFrameError)
+			if ok {
+				break //We processed all frames and are ready, not a real error.
+
+			} else {
+				panic(err.Error)
+			}
+		} else {
 			atom10 := coords.VecView(10)
 			atom2 := coords.VecView(2)
 			fmt.Println("Distance between the third and tenth atoms in the ", i+1, " frame: ", Distance(atom10, atom2), "A")
-		} else {
-			break //leave the loop if the trajectory is over (i.e. if we get a "No more frames" error when trying to read a new fram)
 		}
 	}
 }
 
 //Calculates and returns the distance between two atoms.
-func Distance(atom1, atom2 *chem.VecMatrix) float64 {
-	res := chem.ZeroVecs(1)
+func Distance(atom1, atom2 *v3.Matrix) float64 {
+	res := v3.Zeros(1)
 	res.Sub(atom1, atom2)
 	return res.Norm(0)
 }

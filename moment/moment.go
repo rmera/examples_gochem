@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/rmera/gochem"
+	"github.com/rmera/gochem/v3"
 )
-
 
 //A very basic analysis of the moment of inertia tensor.
 func main() {
-	mol, err := chem.XYZRead("../sample.xyz")
+	mol, err := chem.XYZFileRead("../sample.xyz")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -21,7 +21,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	eigvectors, eigvalues, err := chem.EigenWrap(moment,-1)
+	eigvectors, eigvalues, err := v3.EigenWrap(moment, -1)
 	if err != nil {
 		panic(err.Error())
 	}
