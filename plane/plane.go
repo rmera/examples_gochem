@@ -24,8 +24,8 @@ func main() {
 	//if no file with indexes given, will just use all the atoms.
 	if len(os.Args) < 3 {
 		indexes = make([]int, mol.Len())
-		for k, v := range indexes {
-			indexes[k] = v
+		for k, _ := range indexes {
+			indexes[k] = k
 		}
 	} else {
 		indexes, err = scu.IndexFileParse(os.Args[2])
