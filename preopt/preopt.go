@@ -53,8 +53,8 @@ func main() {
 		calc.RI = false
 	}
 	calc.Basis = *basis
-	calc.Optimize = *optimize
-	if calc.Optimize {
+	calc.Job.Opti = true //for the preeliminar calculation we always optimize, regarless of the user's input, because it's, well, a preoptimization.
+	if calc.Job.Opti {
 		calc.SCFTightness = 1
 	}
 	calc.Dispersion = "D3"
@@ -69,6 +69,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+	calc.Job.Opti = *optimize //here we optimize depending on what the user wants
 	//MOPAC will overwrite the method, as it doesnt support DFT. This is why we set it AFTER the preeliminar calculations
 	calc.Method = *functional
 	var QM qmdef
