@@ -61,7 +61,7 @@ func main() {
 	//The preeliminar optimization will have a different name.
 	namep := strings.Replace(*filename, ".xyz", "OPT", -1)
 	name := strings.Replace(*filename, ".xyz", "", -1)
-	pre := qm.NewMopacHandle()
+	pre := qm.NewXTBHandle()
 	pre.SetName(namep)
 	pre.BuildInput(mol.Coords[0], mol, calc)
 	pre.Run(true)
