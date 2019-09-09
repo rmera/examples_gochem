@@ -1,0 +1,14 @@
+USE:
+
+./bond2Z   file.xyz "index_atom_1 index_atom2"
+
+The indexes are zero-based, as in C or python.
+
+Example:
+
+./bond2Z file.xyz "0 5"
+
+The vector connecting atoms 0 and 5 will become the Z axis.
+
+As an output, the program will write a file called "aligned.xyz"
+which will have the rotated molecule (also centered in the mass center).
