@@ -9,25 +9,27 @@ import (
 	"github.com/rmera/gochem/amberold"
 	"github.com/rmera/gochem/dcd"
 	v3 "github.com/rmera/gochem/v3"
+
 	//	"github.com/rmera/gochem/xtc"
 	//	"github.com/rmera/scu"
 	//	"gonum.org/v1/gonum/mat"
 	//	"math"
 	//	"sort"
 	//	"strconv"
-	//	"strings"
+	"strings"
 )
 
-////use:  program [-skip=number -begin=number2] xyzname trajname multixyzname
+////use:  program [-skip=number -begin=number2] pdbfile trajname
 func main() {
 	//The skip options
 	skip := flag.Int("skip", 0, "How many frames to skip between reads.")
 	begin := flag.Int("begin", 1, "The frame from where to start reading.")
 	format := flag.Int("format", 0, "0 for OldAmber (crd, default), 2 for dcd (NAMD)")
+	end := flag.Int("end", 100000, "The last frame")
 	flag.Parse()
 	args := flag.Args()
 	//	println("SKIP", *skip, *begin, args) ///////////////////////////
-	mol, err := chem.XYZFileRead(args[0])
+	mol, err := chem.PDBFileRead(args[0], false)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -54,14 +56,11 @@ func main() {
 			panic(err.Error())
 		}
 	}
-	out, err := os.Create(args[2])
-	if err != nil {
-		panic(err.Error())
-	}
-	defer out.Close()
+
+	Coords := make([]*v3.Matrix, 0, 0)
 	var coords *v3.Matrix
 	lastread := -1
-	for i := 0; ; i++ { //infinite loop, we only break out of it by using "break"  //modified for profiling
+	for i := 0; i < *end; i++ { //infinite loop, we only break out of it by using "break"  //modified for profiling
 		if lastread < 0 || (i >= lastread+(*skip) && i >= (*begin)-1) {
 			coords = v3.Zeros(traj.Len())
 		}
@@ -79,10 +78,17 @@ func main() {
 			continue
 		}
 		lastread = i
-		err = chem.XYZWrite(out, coords, mol)
-		if err != nil {
-			panic(err.Error())
-		}
+		Coords = append(Coords, coords)
 		coords = nil // Not sure this works
+	}
+	pdbname := strings.Replace(args[1], ".crd", ".pdb", 1)
+	fout, err := os.Create(pdbname)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer fout.Close()
+	err = chem.MultiPDBWrite(fout, Coords, mol, nil)
+	if err != nil {
+		panic("Couldn't write multipdb: " + err.Error())
 	}
 }
