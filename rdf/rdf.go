@@ -50,7 +50,7 @@ func Warning(err error) {
 
 func main() {
 	getsystem := flag.Bool("getsystem", false, "No MDDF/RDF is calculated. Instead, a subsystem with the solute and solvent up to _end_ A is produced for each processed frame of the traj")
-	com := flag.Bool("com", false, "Use the centre of mass (if available, centroid otherwise) for solvent molecules instead of each atom")
+	com := flag.Bool("com", false, " Use the centre of mass (if available, centroid otherwise) for obtaining the distance to a solvent molecule, instead of the closest  atom")
 	skip := flag.Int("skip", 1, "Every how many frames should a frame be read.")
 	step := flag.Float64("step", 0.1, "The interval for the MDDF calculation, in A")
 	end := flag.Float64("end", 10, "The larger distance considered")

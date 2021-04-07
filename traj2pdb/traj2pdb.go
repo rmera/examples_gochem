@@ -25,7 +25,9 @@ func main() {
 	skip := flag.Int("skip", 0, "How many frames to skip between reads.")
 	begin := flag.Int("begin", 1, "The frame from where to start reading.")
 	format := flag.Int("format", 0, "0 for OldAmber (crd, default), 2 for dcd (NAMD)")
+	outformat := flag.String("outformat", "pdb", "dcd. xyz or pdb")
 	end := flag.Int("end", 100000, "The last frame")
+	savelast := flag.Bool("savelast", false, "Save a pdb file with the last frame")
 	flag.Parse()
 	args := flag.Args()
 	//	println("SKIP", *skip, *begin, args) ///////////////////////////
@@ -34,12 +36,15 @@ func main() {
 		panic(err.Error())
 	}
 	var traj chem.Traj
+	replace := "." + *outformat
+	outfname := strings.Replace(args[1], ".crd", replace, 1)
 	switch *format {
 	//	case 0:
 	//		traj, err = xtc.New(args[2])
 	//		if err != nil {
 	//			panic(err.Error())
 	//		}
+
 	case 0:
 		traj, err = amberold.New(args[1], mol.Len(), false)
 		if err != nil {
@@ -50,16 +55,35 @@ func main() {
 		if err != nil {
 			panic(err.Error())
 		}
+
+		outfname = strings.Replace(args[1], ".dcd", replace, 1)
 	case 3:
+		traj, err = chem.XYZFileRead(args[1])
+		if err != nil {
+			panic(err.Error())
+		}
+
+		outfname = strings.Replace(args[1], ".xyz", replace, 1)
+	case 4:
 		traj, err = chem.PDBFileRead(args[1], false)
 		if err != nil {
 			panic(err.Error())
 		}
+
+		outfname = strings.Replace(args[1], ".pdb", "_processed."+*outformat, 1)
 	}
 
 	Coords := make([]*v3.Matrix, 0, 0)
 	var coords *v3.Matrix
 	lastread := -1
+	var trajW *dcd.DCDWObj
+	if *outformat == "dcd" {
+		trajW, err = dcd.NewWriter(outfname, mol.Len())
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	prevcoords := v3.Zeros(traj.Len())
 	for i := 0; i < *end; i++ { //infinite loop, we only break out of it by using "break"  //modified for profiling
 		if lastread < 0 || (i >= lastread+(*skip) && i >= (*begin)-1) {
 			coords = v3.Zeros(traj.Len())
@@ -68,6 +92,9 @@ func main() {
 		if err != nil {
 			_, ok := err.(chem.LastFrameError)
 			if ok {
+				if *savelast {
+					chem.PDBFileWrite("lastframe.pdb", prevcoords, mol, nil)
+				}
 				break //We processed all frames and are ready, not a real error.
 
 			} else {
@@ -78,17 +105,27 @@ func main() {
 			continue
 		}
 		lastread = i
-		Coords = append(Coords, coords)
+		if *outformat == "dcd" {
+			trajW.WNext(coords)
+		} else {
+			Coords = append(Coords, coords)
+		}
+		if *savelast {
+			prevcoords.Copy(coords)
+		}
 		coords = nil // Not sure this works
 	}
-	pdbname := strings.Replace(args[1], ".crd", ".pdb", 1)
-	fout, err := os.Create(pdbname)
+	fout, err := os.Create(outfname)
 	if err != nil {
 		panic(err.Error())
 	}
 	defer fout.Close()
-	err = chem.MultiPDBWrite(fout, Coords, mol, nil)
+	if *outformat == "pdb" {
+		err = chem.MultiPDBWrite(fout, Coords, mol, nil)
+	} else if *outformat == "xyz" {
+		err = chem.XYZWrite(fout, coords, mol)
+	}
 	if err != nil {
-		panic("Couldn't write multipdb: " + err.Error())
+		panic("Couldn't write output file: " + err.Error())
 	}
 }
