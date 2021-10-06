@@ -2,21 +2,20 @@ package main
 
 import (
 	"flag"
-	//	"fmt"
+	"fmt"
+
 	"os"
 
 	chem "github.com/rmera/gochem"
 	"github.com/rmera/gochem/amberold"
 	"github.com/rmera/gochem/dcd"
 	v3 "github.com/rmera/gochem/v3"
-
 	//	"github.com/rmera/gochem/xtc"
 	//	"github.com/rmera/scu"
 	//	"gonum.org/v1/gonum/mat"
 	//	"math"
 	//	"sort"
 	//	"strconv"
-	"strings"
 )
 
 ////use:  program [-skip=number -begin=number2] pdbfile trajname
@@ -25,19 +24,19 @@ func main() {
 	skip := flag.Int("skip", 0, "How many frames to skip between reads.")
 	begin := flag.Int("begin", 1, "The frame from where to start reading.")
 	format := flag.Int("format", 0, "0 for OldAmber (crd, default), 2 for dcd (NAMD)")
-	outformat := flag.String("outformat", "pdb", "dcd. xyz or pdb")
+	outformat := flag.String("outformat", "pdb", "dcd xyz or pdb")
 	end := flag.Int("end", 100000, "The last frame")
 	savelast := flag.Bool("savelast", false, "Save a pdb file with the last frame")
 	flag.Parse()
 	args := flag.Args()
+	fmt.Println("program [-skip=number -begin=number2] pdbfile trajname outname")
 	//	println("SKIP", *skip, *begin, args) ///////////////////////////
 	mol, err := chem.PDBFileRead(args[0], false)
 	if err != nil {
 		panic(err.Error())
 	}
 	var traj chem.Traj
-	replace := "." + *outformat
-	outfname := strings.Replace(args[1], ".crd", replace, 1)
+	outfname := args[2]
 	switch *format {
 	//	case 0:
 	//		traj, err = xtc.New(args[2])
@@ -56,21 +55,18 @@ func main() {
 			panic(err.Error())
 		}
 
-		outfname = strings.Replace(args[1], ".dcd", replace, 1)
 	case 3:
 		traj, err = chem.XYZFileRead(args[1])
 		if err != nil {
 			panic(err.Error())
 		}
 
-		outfname = strings.Replace(args[1], ".xyz", replace, 1)
 	case 4:
 		traj, err = chem.PDBFileRead(args[1], false)
 		if err != nil {
 			panic(err.Error())
 		}
 
-		outfname = strings.Replace(args[1], ".pdb", "_processed."+*outformat, 1)
 	}
 
 	Coords := make([]*v3.Matrix, 0, 0)
@@ -106,7 +102,10 @@ func main() {
 		}
 		lastread = i
 		if *outformat == "dcd" {
-			trajW.WNext(coords)
+			err = trajW.WNext(coords)
+			if err != nil {
+				panic(err.Error())
+			}
 		} else {
 			Coords = append(Coords, coords)
 		}
@@ -115,11 +114,14 @@ func main() {
 		}
 		coords = nil // Not sure this works
 	}
-	fout, err := os.Create(outfname)
-	if err != nil {
-		panic(err.Error())
+	var fout *os.File
+	if *outformat != "dcd" {
+		fout, err = os.Create(outfname)
+		if err != nil {
+			panic(err.Error())
+		}
+		defer fout.Close()
 	}
-	defer fout.Close()
 	if *outformat == "pdb" {
 		err = chem.MultiPDBWrite(fout, Coords, mol, nil)
 	} else if *outformat == "xyz" {
