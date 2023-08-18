@@ -30,6 +30,8 @@ import (
 	"time"
 
 	chem "github.com/rmera/gochem"
+
+	"github.com/rmera/gochem/solv"
 	v3 "github.com/rmera/gochem/v3"
 	"github.com/rmera/gochem/xtc"
 )
@@ -51,6 +53,7 @@ func Warning(err error) {
 func main() {
 	getsystem := flag.Bool("getsystem", false, "No MDDF/RDF is calculated. Instead, a subsystem with the solute and solvent up to _end_ A is produced for each processed frame of the traj")
 	com := flag.Bool("com", false, " Use the centre of mass (if available, centroid otherwise) for obtaining the distance to a solvent molecule, instead of the closest  atom")
+	cpus := flag.Int("cpus", -1, "How many gorutines to use. If <0, as many as the logical CPUs will be used.")
 	skip := flag.Int("skip", 1, "Every how many frames should a frame be read.")
 	step := flag.Float64("step", 0.1, "The interval for the MDDF calculation, in A")
 	end := flag.Float64("end", 10, "The larger distance considered")
@@ -78,16 +81,22 @@ func main() {
 	}
 	Error(err)
 	fmt.Println("skip", *skip, "step", *step, "end", *end, "refatom", *refatom, "refid", *refID, "trajname", trajname, "pdbname", pdbname, "solname", solname, "solute", solute, args) ////////////////////////////////
-	//not-stupid way
+
+	options := solv.DefaultOptions()
+	options.Step(*step)
+	options.End(*end)
+	options.COM(*com)
+	options.Cpus(*cpus)
+
 	traj1, err := xtc.New(trajname)
 	if *getsystem {
-		GetSystem(traj1, mol, solute, solname, *end, *skip, *com)
+		GetSystem(traj1, mol, solute, solname, options)
 		return
 
 	}
 	Error(err)
 	start = time.Now()
-	rdf1, solv1, err := chem.ConcMolRDF(traj1, mol, solute, solname, *step, *end, *com)
+	rdf1, solv1, err := solv.ConcMolRDF(traj1, mol, solute, solname, options)
 	Error(err)
 	fin = time.Now()
 	elapsed = fin.Sub(start)
@@ -100,16 +109,15 @@ func main() {
 
 //GetSystem, For each read frame, creates XYZ file with the solute and the solvent molecues(molecules with residue names contained in residues) within end A.
 //Either any atom from a solvent molecule, or the COM is used to define whether a molecule iswhithin the range, or not.
-func GetSystem(traj chem.Traj, mol chem.Atomer, refindexes []int, residues []string, end float64, frameskip int, com bool) {
+func GetSystem(traj chem.Traj, mol chem.Atomer, refindexes []int, residues []string, options *solv.Options) {
 	topol := chem.NewTopology(0, 1)
 	coords := v3.Zeros(mol.Len())
 	var err error
-	if frameskip < 1 {
-		frameskip = 1
-	}
 reading:
+
 	for i := 0; ; i++ {
-		if i > 0 && i%frameskip != 0 && err == nil {
+		//	fmt.Println(refindexes)
+		if i > 0 && i%options.Skip() != 0 && err == nil {
 			err = traj.Next(nil) //if this err is not nil, the next traj.Next() will not be excecuted, whether it's a skip or a read. Instead, we'll go directly to error processing.
 			continue
 		} else if err == nil { //in case the frame we skipped before gave an error
@@ -123,11 +131,13 @@ reading:
 				break reading
 			}
 		}
-		whithin := chem.DistRank(coords, mol, refindexes, residues, end, com)
+		whithin := solv.DistRank(coords, mol, refindexes, residues, options)
 		indexes := make([]int, 0, len(refindexes)+whithin.Len())
 		indexes = append(indexes, refindexes...)
-		indexes = append(indexes, whithin.AtomIDs(mol)...)
-		basename := fmt.Sprintf("System_%dA_Frame%d_Natoms%d", int(end), i, len(indexes))
+		fmt.Println(indexes)
+		//	indexes = append(indexes, whithin.AtomIDs(mol)...)
+		basename := fmt.Sprintf("System_%dA_Frame%d_Natoms%d", int(options.End()), i, len(indexes))
+		chem.PDBFileWrite("Full"+basename+".pdb", coords, mol, nil)
 		topol.SomeAtoms(mol, indexes)
 		c := v3.Zeros(len(indexes))
 		c.SomeVecs(coords, indexes)

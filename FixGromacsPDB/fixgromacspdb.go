@@ -14,6 +14,7 @@ func main() {
 	}
 	coord := mol.Coords[0]
 	chem.FixGromacsPDB(mol)
+	mol.ResetIDs()
 	newname := strings.Replace(os.Args[1], ".pdb", "_fixed.pdb", 1)
 	chem.PDBFileWrite(newname, coord, mol, nil)
 
