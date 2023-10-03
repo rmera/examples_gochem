@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	chem "github.com/rmera/gochem"
-	"github.com/rmera/gochem/dcd"
 	"github.com/rmera/gochem/qm"
+	"github.com/rmera/gochem/traj/dcd"
 	v3 "github.com/rmera/gochem/v3"
 )
 

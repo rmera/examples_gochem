@@ -32,18 +32,18 @@ import (
 	chem "github.com/rmera/gochem"
 
 	"github.com/rmera/gochem/solv"
+	"github.com/rmera/gochem/traj/xtc"
 	v3 "github.com/rmera/gochem/v3"
-	"github.com/rmera/gochem/xtc"
 )
 
-//lazy wrapping function for critical errors.
+// lazy wrapping function for critical errors.
 func Error(err error) {
 	if err != nil {
 		panic(err.Error())
 	}
 }
 
-//Justa silly little error wrapping for non critical errors
+// Justa silly little error wrapping for non critical errors
 func Warning(err error) {
 	if err != nil {
 		fmt.Println("Warning!,", err.Error())
@@ -107,8 +107,8 @@ func main() {
 
 }
 
-//GetSystem, For each read frame, creates XYZ file with the solute and the solvent molecues(molecules with residue names contained in residues) within end A.
-//Either any atom from a solvent molecule, or the COM is used to define whether a molecule iswhithin the range, or not.
+// GetSystem, For each read frame, creates XYZ file with the solute and the solvent molecues(molecules with residue names contained in residues) within end A.
+// Either any atom from a solvent molecule, or the COM is used to define whether a molecule iswhithin the range, or not.
 func GetSystem(traj chem.Traj, mol chem.Atomer, refindexes []int, residues []string, options *solv.Options) {
 	topol := chem.NewTopology(0, 1)
 	coords := v3.Zeros(mol.Len())

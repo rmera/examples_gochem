@@ -7,8 +7,8 @@ import (
 	"os"
 
 	chem "github.com/rmera/gochem"
-	"github.com/rmera/gochem/amberold"
-	"github.com/rmera/gochem/dcd"
+	"github.com/rmera/gochem/traj/amberold"
+	"github.com/rmera/gochem/traj/dcd"
 	v3 "github.com/rmera/gochem/v3"
 	//	"github.com/rmera/gochem/xtc"
 	//	"github.com/rmera/scu"
