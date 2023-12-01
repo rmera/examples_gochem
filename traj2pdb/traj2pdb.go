@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"strings"
 
 	"os"
 
@@ -18,12 +20,11 @@ import (
 	//	"strconv"
 )
 
-////use:  program [-skip=number -begin=number2] pdbfile trajname
 func main() {
 	//The skip options
 	skip := flag.Int("skip", 0, "How many frames to skip between reads.")
 	begin := flag.Int("begin", 1, "The frame from where to start reading.")
-	format := flag.Int("format", 0, "0 for OldAmber (crd, default), 2 for dcd (NAMD)")
+	//	format := flag.Int("format", 0, "0 for OldAmber (crd, default), 2 for dcd (NAMD)")
 	outformat := flag.String("outformat", "pdb", "dcd xyz or pdb")
 	end := flag.Int("end", 100000, "The last frame")
 	savelast := flag.Bool("savelast", false, "Save a pdb file with the last frame")
@@ -37,36 +38,39 @@ func main() {
 	}
 	var traj chem.Traj
 	outfname := args[2]
-	switch *format {
+	formatfields := strings.Split(args[1], ".")
+	format := strings.ToLower(formatfields[len(formatfields)-1])
+	switch format {
 	//	case 0:
 	//		traj, err = xtc.New(args[2])
 	//		if err != nil {
 	//			panic(err.Error())
 	//		}
 
-	case 0:
+	case "crd":
 		traj, err = amberold.New(args[1], mol.Len(), false)
 		if err != nil {
 			panic(err.Error())
 		}
-	case 2:
+	case "dcd":
 		traj, err = dcd.New(args[1])
 		if err != nil {
 			panic(err.Error())
 		}
 
-	case 3:
+	case "xyz":
 		traj, err = chem.XYZFileRead(args[1])
 		if err != nil {
 			panic(err.Error())
 		}
 
-	case 4:
+	case "pdb":
 		traj, err = chem.PDBFileRead(args[1], false)
 		if err != nil {
 			panic(err.Error())
 		}
-
+	default:
+		log.Fatal("Unrecognized trajectory format. Formats are recognized by file extension")
 	}
 
 	Coords := make([]*v3.Matrix, 0, 0)

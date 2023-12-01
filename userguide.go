@@ -1,12 +1,11 @@
-// +build one
 package main
 
 import (
 	"fmt"
 
-	"github.com/rmera/gochem"
-	"github.com/rmera/gochem/v3"
-	"github.com/rmera/gochem/xtc"
+	chem "github.com/rmera/gochem"
+	"github.com/rmera/gochem/traj/xtc"
+	v3 "github.com/rmera/gochem/v3"
 )
 
 func main() {
@@ -69,7 +68,7 @@ func SelectResidue(mol chem.Atomer, residue string) []int {
 	prevmol := -1                //This is the index of the molecular ID of the last atom read (a meaningless negative number initially)
 	//it helps to make sure we process each molecule only once.
 	for j := 0; j < mol.Len(); j++ {
-		if mol.Atom(j).MolID != prevmol && mol.Atom(j).Molname == residue {
+		if mol.Atom(j).MolID != prevmol && mol.Atom(j).MolName == residue {
 			selected_residues = append(selected_residues, mol.Atom(j).MolID) //if the residue match and we have not processed
 			//this residue before, we add it to the list.
 		}

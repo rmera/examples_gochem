@@ -30,11 +30,21 @@ func MDErr(err error) bool {
 }
 
 func main() {
-	mol, err := chem.PDBFileRead(os.Args[1], true)
+	name := os.Args[1]
+	namext := strings.Split(name, ".")
+	var mol *chem.Molecule
+	var err error
+	if strings.ToLower(namext[len(namext)-1]) == "pdb" {
+		mol, err = chem.PDBFileRead(name)
+	} else {
+		mol, err = chem.XYZFileRead(name)
+	}
 	Err(err)
 	trjname := os.Args[2]
+	trjext := strings.Split(trjname, ".")
 	var traj chem.Traj
-	switch strings.Split(trjname, ".")[1] { //we will be supporting these 3 formats, althoug we could add pDynamo's crd and Gromacs' xtc
+
+	switch trjext[len(trjext)-1] { //we will be supporting these 3 formats, althoug we could add pDynamo's crd and Gromacs' xtc
 	case "xyz":
 		_, traj, err = chem.XYZFileAsTraj(trjname)
 	case "pdb":
@@ -51,7 +61,7 @@ func main() {
 	basename := strings.Replace(os.Args[1], ".xyz", "_hess", 1)
 	Calc := new(qm.Calc)
 	Calc.Method = "gfn2"
-	Calc.Job = *&qm.Job{Forces: true}
+	Calc.Job = &qm.Job{Forces: true}
 	epsilon, err := strconv.Atoi(os.Args[5])
 	Calc.Dielectric = float64(epsilon)
 	Err(err)
